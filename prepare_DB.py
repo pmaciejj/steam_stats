@@ -112,4 +112,14 @@ company_name text
 cursor.execute(q)
 conn.commit()
 
+q ="""
+create table if not exists runs
+(
+steam_refresh_date text,
+run_datetime text
+)
+""" 
+cursor.execute(q)
+conn.commit()
+
 conn.close()

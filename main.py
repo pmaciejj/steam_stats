@@ -1,11 +1,12 @@
-
+import os
+import shutil
 import requests
 import datetime
 from bs4 import BeautifulSoup
 
 import db_op
 import twitch_api
-
+from config import db_path
 steam_stats_url = r"https://store.steampowered.com/stats/"
 
 with requests.session() as s:
@@ -43,7 +44,7 @@ for s in stats:
     rows.append((update_date_dt,s[2],s[0],s[1]))
 
 db_op.steam_stats_insert(rows)
-
+db_op.runs_insert(update_date_dt)
 
 if db_op.twitch_get_active_token() is None:
     t_exdate = twitch_api.token_get()
@@ -95,8 +96,8 @@ for game in games:
             for k,v in ic.items():
                 if v == True:
                     role = k
-            if ic["id"] != 134846: #terraria same company twice as publisher
-                inv_comp_data.append((twitch_game_id,company_id,role))
+                    if ic["id"] != 134846: #terraria same company twice as publisher
+                        inv_comp_data.append((twitch_game_id,company_id,role))
 
         db_op.twitch_game_involved_companies_insert(inv_comp_data)
         if "genres" in game_info.keys():
@@ -110,9 +111,18 @@ if len(companies)>0:
         comp_data = twitch_api.company_get(comp)[0]
         db_op.twitch_companies_insert(comp_data["id"],comp_data["name"])
 
-if db_op.missing_genres_check() > 0:    
+if db_op.missing_genres_check() > 0:
     genres = twitch_api.genres_get()
     genres_data = [tuple(g.values()) for g in genres]
     db_op.twitch_genres_insert(genres_data)
 
 db_op.conn_close()
+
+
+##create db copy without token data
+db_path_copy = db_path.replace(".db","_without_token.db")
+if os.path.isdir(db_path_copy):
+    os.remove(db_path_copy)
+
+shutil.copy(db_path,db_path_copy)
+db_op.token_clear(db_path_copy)

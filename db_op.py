@@ -1,4 +1,5 @@
 import sqlite3
+import string
 from config import db_path
 from datetime import datetime
 
@@ -12,16 +13,11 @@ except sqlite3.Error as e:
 def conn_close():
     conn.close()
 
-def steam_stats_insert(rows:list):
-    cursor.executemany("insert into steam_stats values (?,?,?,?)",rows)
-    conn.commit()
 
 def twitch_token_insert(token,expiration_date):
     cursor.execute("insert into twitch_token values (?,?)",(token,expiration_date))
     conn.commit()
     print("new token inserted")
-
-
 
 # return None if there is no active token in db or it will expire within 10 mins
 def twitch_get_active_token():
@@ -35,6 +31,13 @@ def twitch_get_active_token():
         if (ex_date - ts).total_seconds()/60 < 10: return None
     return row[0]
 
+def steam_stats_insert(rows:list):
+    cursor.executemany("insert into steam_stats values (?,?,?,?)",rows)
+    conn.commit()
+
+def runs_insert(steam_refresh_date:string):
+    cursor.execute("insert into runs values (?,datetime('now','localtime'))",(steam_refresh_date,))
+    conn.commit()
 
 def steam_twitch_mapping_check(steam_game):
     cursor.execute("select count(*) from steam_twitch_mapping where steam_game = ?",(steam_game,))
@@ -50,7 +53,7 @@ def twitch_game_info_insert(twitch_game_id,release_date,num_expansions,num_dlcs)
     conn.commit()
 
 def twitch_game_involved_companies_insert(inv_comp_data:list):
-    cursor.executemany("insert into twitch_game_involved_companies values (?,?,?)",inv_comp_data)
+    cursor.executemany("insert into twitch_game_involved_companies_v2 values (?,?,?)",inv_comp_data)
     conn.commit()
 
 def twitch_game_genre_insert(game_genres:list):
@@ -97,7 +100,14 @@ def missing_games_get():
     rows = cursor.fetchall()
     return [r[0] for r in rows]
 
-
+def token_clear(db_path):
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("delete from twitch_token")
+        conn.commit()
+    except sqlite3.Error as e:
+        print(e)
 
 # --DROP TABLE tid;
 # PRAGMA temp_store = 2; 
