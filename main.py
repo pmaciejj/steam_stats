@@ -119,10 +119,10 @@ if db_op.missing_genres_check() > 0:
 db_op.conn_close()
 
 
-##create db copy without token data
-db_path_copy = db_path.replace(".db","_without_token.db")
-if os.path.isdir(db_path_copy):
-    os.remove(db_path_copy)
+#create db copy without token data
+# db_path_copy = db_path.replace(".db","_without_token.db")
+# if os.path.isdir(db_path_copy):
+#     os.remove(db_path_copy)
 
-shutil.copy(db_path,db_path_copy)
-db_op.token_clear(db_path_copy)
+# shutil.copy(db_path,db_path_copy)
+# db_op.token_clear(db_path_copy)
