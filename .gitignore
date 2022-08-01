@@ -3,3 +3,5 @@ __pycache__/
 run.bat
 config.py
 steam_stats.db
+steam_stats_without_token.db
+PowerBI_report/
